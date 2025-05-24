@@ -1,23 +1,41 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import heroImage from "../assets/images/beach-picture.jpg";
-import whyUsImg from "../assets/images/why-us.jpg";
-import "../assets/styles/general.css";
-import "../assets/styles/main.css";
-import "../assets/styles/places.css";
-import placesData from "../data/places-to-visit-data";
-import React, { useState, useMemo } from "react";
+import "../styles/general.css";
+import "../styles/main.css";
+import "../styles/places.css";
+import { useState, useMemo, useEffect } from "react";
 import PlaceCard from "../components/PlaceCard";
 import { usePlannedTrips } from '../context/plannedTripsContext';
 import { NavLink } from 'react-router-dom';
+import { getPlaces } from '../services/databaseService';
 
 const HomePage = () => {
     const { plannedTrips, addTrip } = usePlannedTrips();
-    const [places, setPlaces] = useState(placesData);
+    const [places, setPlaces] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadPlaces = async () => {
+            try {
+                const placesData = await getPlaces();
+                setPlaces(placesData);
+            } catch(error) {
+                console.error("Error fetching places data: ", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadPlaces();
+    }, []);
 
     const topPlaces = useMemo(() => {
         return [...places].sort((a, b) => b.rating - a.rating).slice(0, 4);
     }, [places]);
+
+    if(loading) {
+        return <p>Loading...</p>;
+    }
 
     return (
         <>
@@ -25,7 +43,7 @@ const HomePage = () => {
             <main>
                 <section className="hero">
                     <div className="hero-container">
-                        <img src={heroImage} alt="Hero" className="hero-image" />
+                        <img src={"/images/beach-picture.jpg"} alt="Hero" className="hero-image" />
                         <div className="hero-text">
                             <h1 id='hero-h1'>Explore Beautiful Places</h1>
                         </div>
@@ -44,7 +62,7 @@ const HomePage = () => {
                         <h2>Why Choose Us?</h2>
                         <div class="content">
                             <div class="why-us-img">
-                                <img src={whyUsImg} alt="why us"/>
+                                <img src={"/images/why-us.jpg"} alt="why us"/>
                             </div>
                             <div class="text">
                                 <h3>We Deliver Experience</h3>
@@ -66,9 +84,9 @@ const HomePage = () => {
                     <h2>Top Destinations For You</h2>
                     <p>Discover breathtaking locations for your next trip.</p>
                     <div class="places-container">
-                        {topPlaces.map((place, index) => (
+                        {topPlaces.map((place) => (
                             <PlaceCard 
-                                key={index}
+                                key={place.id}
                                 place={place}
                                 plannedTrips={plannedTrips}
                                 onAdd={addTrip}

@@ -1,6 +1,6 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import '../assets/styles/my-travels.css';
+import '../styles/my-travels.css';
 import { usePlannedTrips } from '../context/plannedTripsContext';
 import { useState } from 'react';
 // import { CSSTransition, TransitionGroup } from 'react-transition-group';

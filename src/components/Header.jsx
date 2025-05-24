@@ -1,5 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
-import '../assets/styles/general.css';
+import '../styles/general.css';
 
 const Header = () => (
     <header>
@@ -18,7 +18,10 @@ const Header = () => (
                 Budget
             </NavLink>
         </nav>
-        <button className="login-btn">Log in</button>
+        <Link to="/login" className="login-link">
+            <button className="login-btn">Log in</button>
+        </Link>
+        
     </header>
 );
 

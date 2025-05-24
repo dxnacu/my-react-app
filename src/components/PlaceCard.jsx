@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import '../assets/styles/places.css';
-import '../assets/styles/main.css';
+import '../styles/places.css';
+import '../styles/main.css';
 
 function PlaceCard({ place, onAdd, plannedTrips }){
     const [isHovered, setIsHovered] = useState(false);
@@ -30,7 +30,7 @@ function PlaceCard({ place, onAdd, plannedTrips }){
                         <p>•</p>
                         <div className="place-views"><p>{place.views} views</p></div>
                     </div>
-                    <div className="place-price"><p>{place.price}</p></div>
+                    <div className="place-price"><p>€{place.price}</p></div>
                 </div>
             </div>
 

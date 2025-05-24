@@ -4,6 +4,8 @@ import HomePage from './pages/HomePage';
 import Budget from './pages/Budget';
 import MyTravels from './pages/MyTravels';
 import PlacesToVisit from './pages/PlacesToVisit';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 import { PlannedTripsProvider } from './context/plannedTripsContext';
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
           <Route path="/budget" element={<Budget />} />
           <Route path="/my-travels" element={<MyTravels />} />
           <Route path="/places-to-visit" element={<PlacesToVisit />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<SignupPage />} />
         </Routes>
       </Router>
     </PlannedTripsProvider>

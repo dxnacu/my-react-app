@@ -1,15 +1,45 @@
 import PlaceCard from './PlaceCard';
 import { usePlannedTrips } from '../context/plannedTripsContext';
-import places from '../data/places-to-visit-data';
+import { getPlaces } from '../services/databaseService'; 
 import { useState, useEffect } from 'react';
-import '../assets/styles/places-to-visit.css';
+import '../styles/places-to-visit.css';
+import "../styles/general.css";
 
 export default function PlaceList() {
     const { plannedTrips, addTrip } = usePlannedTrips();
 
+    const [allPlaces, setAllPlaces] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedFilters, setSelectedFilters] = useState([]);
-    const [filteredPlaces, setFilteredPlaces] = useState(places);
+    const [filteredPlaces, setFilteredPlaces] = useState([]);
     let filters = ["Beach", "Mountains", "City", "Other"];
+
+    useEffect(() => {
+        const loadPlaces = async () => {
+            try {
+                const placesData = await getPlaces();
+                setAllPlaces(placesData);
+                setFilteredPlaces(placesData);
+            } catch (error) {
+                console.error("Error fetching places: ", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadPlaces();
+    }, []);
+
+    useEffect(() => {
+        if (selectedFilters.length > 0) {
+            const filtered = allPlaces.filter((place) =>
+                selectedFilters.includes(place.category)
+            );
+            setFilteredPlaces(filtered);
+        } else {
+            setFilteredPlaces(allPlaces);
+        }
+    }, [selectedFilters, allPlaces]);
 
     const handleFilterButtonClick = (selectedCategory) => {
         if (selectedFilters.includes(selectedCategory)) {
@@ -20,21 +50,7 @@ export default function PlaceList() {
         }
     };
 
-    const filterPlaces = () => {
-        if (selectedFilters.length > 0) {
-            let tempPlaces = selectedFilters.map((selectedCategory) => {
-                let temp = places.filter((place) => place.category === selectedCategory)
-                return temp;
-            });
-            setFilteredPlaces(tempPlaces.flat());
-        } else {
-            setFilteredPlaces([...places]);
-        }
-    };
-
-    useEffect(() => {
-        filterPlaces();
-    }, [selectedFilters]);
+    if (loading) return <p>Loading...</p>;
 
     return (
         <div>
@@ -54,7 +70,7 @@ export default function PlaceList() {
             <div className="places-container">
                 {filteredPlaces.map((place, idx) => (
                     <PlaceCard
-                        key={idx}
+                        key={place.id || idx}
                         place={place}
                         plannedTrips={plannedTrips}
                         onAdd={addTrip}

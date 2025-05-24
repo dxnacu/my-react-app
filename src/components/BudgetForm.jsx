@@ -1,5 +1,5 @@
-import "../assets/styles/budget.css";
-import "../assets/styles/general.css";
+import "../styles/budget.css";
+import "../styles/general.css";
 import { useState } from "react";
 
 const destinations = [

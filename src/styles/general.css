@@ -70,6 +70,11 @@ nav a {
     text-wrap: nowrap;
     width: 88px;
     height: 33px;
+    text-decoration: none;
+}
+
+.login-link {
+    text-decoration: none;
 }
 
 .login-btn:hover {
