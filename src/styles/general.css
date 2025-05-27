@@ -81,6 +81,28 @@ nav a {
     background: rgb(148, 55, 41);
 }
 
+.logout-btn {
+    display: flex;
+    justify-content: center;
+    background: rgb(84, 75, 72);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    font-size: 14px;
+    font-family: Arial;
+    border-radius: 5px;
+    margin-right: 21px;
+    margin-left: 20px;
+    cursor: pointer;
+    text-wrap: nowrap;
+    width: 88px;
+    height: 33px;
+}
+
+.logout-btn:hover {
+    background: rgb(56, 50, 48);
+}
+
 html, body {
     height: 100%;
     margin: 0;

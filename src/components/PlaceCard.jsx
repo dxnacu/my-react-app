@@ -1,15 +1,33 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '../context/userContext';
+import { useNavigate } from 'react-router-dom';
 import '../styles/places.css';
 import '../styles/main.css';
 
 function PlaceCard({ place, onAdd, plannedTrips }){
+    const { user } = useUser();
+    const navigate = useNavigate();
     const [isHovered, setIsHovered] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
 
     useEffect(() => {
-        const exists = plannedTrips.some(trip => trip.name === place.name);
+        const exists = plannedTrips?.some(trip => trip.name === place.name);
         setIsAdded(exists);
     }, [plannedTrips, place.name]);
+
+    const handlePlanTrip = () => {
+        if (!user) {
+            if (window.confirm("You need to be logged in to plan a trip. Do you want to log in?")) {
+                navigate('/login');
+            }
+            return;
+        }
+
+        if (!isAdded) {
+            onAdd(place);
+            setIsAdded(true);
+        }
+    };
 
     return (
         <div className="place"
@@ -37,10 +55,8 @@ function PlaceCard({ place, onAdd, plannedTrips }){
             {isHovered && (
                 <button
                     className="add-button"
-                    onClick={() => {
-                    if (!isAdded) onAdd(place);
-                    }}
-                    disabled={isAdded}
+                    onClick={handlePlanTrip}
+                    disabled={!!user && isAdded}
                     style={{
                         position: 'absolute',
                         bottom: '0',
@@ -59,7 +75,7 @@ function PlaceCard({ place, onAdd, plannedTrips }){
                         transition: 'transform 0.4s ease'
                     }}
                 >
-                    {isAdded ? 'Aleady Added' : 'Plan Trip Now'}
+                    {!user ? 'Log in to plan trips' : isAdded ? 'Aleady Added' : 'Plan Trip Now'}
                 </button>
             )}
         </div>

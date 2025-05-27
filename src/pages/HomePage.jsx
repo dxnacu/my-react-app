@@ -6,11 +6,13 @@ import "../styles/places.css";
 import { useState, useMemo, useEffect } from "react";
 import PlaceCard from "../components/PlaceCard";
 import { usePlannedTrips } from '../context/plannedTripsContext';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { auth } from '../services/firebase';
 import { getPlaces } from '../services/databaseService';
 
 const HomePage = () => {
     const { plannedTrips, addTrip } = usePlannedTrips();
+    const navigate = useNavigate();
     const [places, setPlaces] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -37,6 +39,20 @@ const HomePage = () => {
         return <p>Loading...</p>;
     }
 
+    const checkAuth = () => {
+        if(!auth.currentUser) {
+            navigate('/login');
+            return false;
+        }
+        return true;
+    }
+
+    const handleBudgetClick = () => {
+        if(checkAuth()) {
+            navigate('/budget');
+        }
+    }
+
     return (
         <>
             <Header />
@@ -57,14 +73,14 @@ const HomePage = () => {
                         </button>
                     </div>
                 </section>
-                <section id="why-us" class="why-us">
-                    <div class="container">
+                <section id="why-us" className="why-us">
+                    <div className="container">
                         <h2>Why Choose Us?</h2>
-                        <div class="content">
-                            <div class="why-us-img">
+                        <div className="content">
+                            <div className="why-us-img">
                                 <img src={"/images/why-us.jpg"} alt="why us"/>
                             </div>
-                            <div class="text">
+                            <div className="text">
                                 <h3>We Deliver Experience</h3>
                                 <p>
                                 At our company, we prioritize customer satisfaction and innovation. 
@@ -80,10 +96,10 @@ const HomePage = () => {
                         </div>
                     </div>
                 </section>
-                <section id="places-to-visit" class="content">
+                <section id="places-to-visit" className="content">
                     <h2>Top Destinations For You</h2>
                     <p>Discover breathtaking locations for your next trip.</p>
-                    <div class="places-container">
+                    <div className="places-container">
                         {topPlaces.map((place) => (
                             <PlaceCard 
                                 key={place.id}
@@ -94,13 +110,13 @@ const HomePage = () => {
                         ))}
                     </div>
                 </section>
-                <section id="budget" class="content">
+                <section id="budget" className="content">
                     <div>
                         <h2>Budget</h2>
                         <p>Plan your expenses and manage your travel costs wisely.</p>
-                        <div class="budget-btn-div">
-                            <button class="budg-btn">
-                                <NavLink to="/budget">Get Started</NavLink>
+                        <div className="budget-btn-div">
+                            <button className="budg-btn" onClick={handleBudgetClick}>
+                                Get Started
                             </button>
                         </div>
                     </div>

@@ -38,7 +38,7 @@ function SignUp() {
         <input
             type="password"
             className='form-control'
-            placeholder='Enter your password'
+            placeholder='Create your password'
             value={password}
             onChange={(e) => setPassword(e.target.value)}
         />

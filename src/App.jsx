@@ -7,21 +7,24 @@ import PlacesToVisit from './pages/PlacesToVisit';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import { PlannedTripsProvider } from './context/plannedTripsContext';
+import { UserProvider } from './context/userContext';
 
 function App() {
   return (
-    <PlannedTripsProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/budget" element={<Budget />} />
-          <Route path="/my-travels" element={<MyTravels />} />
-          <Route path="/places-to-visit" element={<PlacesToVisit />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<SignupPage />} />
-        </Routes>
-      </Router>
-    </PlannedTripsProvider>
+    <UserProvider>
+      <PlannedTripsProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/budget" element={<Budget />} />
+            <Route path="/my-travels" element={<MyTravels />} />
+            <Route path="/places-to-visit" element={<PlacesToVisit />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<SignupPage />} />
+          </Routes>
+        </Router>
+      </PlannedTripsProvider>
+    </UserProvider>
   );
 }
 

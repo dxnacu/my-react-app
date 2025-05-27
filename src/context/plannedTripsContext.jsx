@@ -1,37 +1,70 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { 
+  addTripToFirestore, 
+  getTripsFromFirestore,
+  deleteTripFromFirestore,
+  markTripAsCompletedInFirestore 
+} from '../services/databaseService';
+import { useUser } from "./userContext";
+import { collection, where, getDocs, query } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 const PlannedTripsContext = createContext();
 
 export function PlannedTripsProvider({ children }) {
-  const [plannedTrips, setPlannedTrips] = useState(() => {
-    return JSON.parse(localStorage.getItem('plannedTrips')) || [];
-  });
+  const { user } = useUser();
+  const [trips, setTrips] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem('plannedTrips', JSON.stringify(plannedTrips));
-  }, [plannedTrips]);
-
-  const addTrip = (place) => {
-    if (!plannedTrips.some(trip => trip.name === place.name)) {
-      setPlannedTrips([...plannedTrips, { name: place.name, image: place.image, status: 'planned' }]);
+    const fetchTrips = async () => {
+      const tripsFromDb = await getTripsFromFirestore(user.uid);
+      setTrips(tripsFromDb);
+      console.log("Trips from Firestore:", tripsFromDb);
     }
-  };
 
-  const removeTrip = (name) => {
-    const updatedTrips = plannedTrips.filter(trip => trip.name !== name);
-    setPlannedTrips(updatedTrips);
+    if(user) fetchTrips();
+  }, [user]);
+
+  const addTrip = async (trip) => {
+    if (user) {
+      try {
+        const tripsRef = collection(db, `users/${user.uid}/trips`);
+        const q = query(tripsRef, where("name", "==", trip.name));
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          console.log("Trip with this name already exists");
+          return;
+        }
+
+        const newTrip = await addTripToFirestore(user.uid, trip);
+        setTrips(prevTrips => [...prevTrips, newTrip]);
+      } catch (error) {
+        console.error("Error adding trip:", error);
+      }
+    }
   }
 
-  const markTripAsCompleted = (name) => {
-    const updatedTrips = plannedTrips.map(trip => 
-      trip.name === name ? { ...trip, status: 'completed' } : trip
-    );
-    setPlannedTrips(updatedTrips);
-    localStorage.setItem('plannedTrips', JSON.stringify(updatedTrips));
+  const removeTrip = async (tripid) => {
+    if (user) {
+      await deleteTripFromFirestore(user.uid, tripid);
+      setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripid));
+    }
+  }
+
+  const markTripAsCompleted = async (tripid) => {
+    if (user) {
+      await markTripAsCompletedInFirestore(user.uid, tripid);
+      setTrips(prevTrips => 
+        prevTrips.map(trip => 
+          trip.id === tripid ? { ...trip, status: 'completed' } : trip
+        )
+      );
+    }
   }
 
   return (
-    <PlannedTripsContext.Provider value={{ plannedTrips, addTrip, removeTrip, markTripAsCompleted }}>
+    <PlannedTripsContext.Provider value={{ trips, addTrip, removeTrip, markTripAsCompleted }}>
       {children}
     </PlannedTripsContext.Provider>
   );

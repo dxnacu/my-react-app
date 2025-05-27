@@ -2,121 +2,47 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import '../styles/my-travels.css';
 import { usePlannedTrips } from '../context/plannedTripsContext';
+import { useUser } from '../context/userContext';
 import { useState } from 'react';
-// import { CSSTransition, TransitionGroup } from 'react-transition-group';
-// import { useRef } from 'react';
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
 export default function MyTravels() {
-    const { plannedTrips, removeTrip, markTripAsCompleted } = usePlannedTrips();
+    const { trips, removeTrip, markTripAsCompleted } = usePlannedTrips();
+    const { user } = useUser();
     const [hoveredIndex, setHoveredIndex] = useState(null);
 
-    const planned = plannedTrips.filter(trip => trip.status === 'planned');
-    const completed = plannedTrips.filter(trip => trip.status === 'completed');
+    if (!user) {
+        return (
+            <div>
+                <Header />
+                <div className="my-trips">
+                    <p>To view your trips, please, <a href="/login">log in to the account</a>.</p>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
 
-    const handleRemove = (name) => {
-        if (window.confirm(`Are you sure you want to remove "${name}"?`)) {
-            removeTrip(name);
-            toast.error(`Trip "${name}" removed`);
+    const planned = trips.filter(trip => trip.status === 'planned');
+    const completed = trips.filter(trip => trip.status === 'completed');
+
+    const handleRemove = (id) => {
+        console.log("Trying to remove trip with id:", id);
+        const trip = trips.find(t => t.id === id);
+        if (trip && window.confirm(`Are you sure you want to remove "${trip.name}"?`)) {
+            removeTrip(id);
+            toast.error(`Trip "${trip.name}" removed`);
         }
     };
 
-    const handleComplete = (name) => {
-        markTripAsCompleted(name);
-        toast.success(`Trip "${name}" completed!`);
+    const handleComplete = (id) => {
+        const trip = trips.find(t => t.id === id);
+        if (trip){
+            markTripAsCompleted(id);
+            toast.success(`Trip "${trip.name}" completed!`);
+        }
     };
-
-    // return (
-    //     <div>
-    //         <Header />
-    //         <div className="my-trips">
-    //             <div className="planned-trips">
-    //                 <h3>Planned Trips</h3>
-    //                 <TransitionGroup className="planned-trips-list">
-    //                     {planned.length === 0 ? (
-    //                         <p style={{ textAlign: 'center', margin: '100px' }}>
-    //                             No planned trips yet
-    //                         </p>
-    //                     ) : (
-    //                         planned.map((trip, index) => (
-    //                             <CSSTransition
-    //                                 key={trip.name}
-    //                                 timeout={300}
-    //                                 classNames="trip"
-    //                                 nodeRef={nodeRef}
-    //                             >
-    //                                 <div className="trip-card"
-    //                                     onMouseEnter={() => setHoveredIndex(index)}
-    //                                     onMouseLeave={() => setHoveredIndex(null)}
-    //                                 >
-    //                                     <img src={trip.image} alt={trip.name} />
-    //                                     <div className="trip-info">
-    //                                         <h4>{trip.name}</h4>
-    //                                         <p>{trip.date}</p>
-    //                                     </div>
-
-    //                                     {hoveredIndex === index && (
-    //                                         <div className='hover-buttons'>
-    //                                             <button
-    //                                                 className='remove-btn'
-    //                                                 onClick={() => handleRemove(trip.name)}
-    //                                             >
-    //                                                 Remove
-    //                                             </button>
-    //                                             <button
-    //                                                 className='complete-btn'
-    //                                                 onClick={() => handleComplete(trip.name)}
-    //                                             >
-    //                                                 Complete
-    //                                             </button>
-    //                                         </div>
-    //                                     )}
-    //                                 </div>
-    //                             </CSSTransition>
-    //                         ))
-    //                     )}
-    //                 </TransitionGroup>
-    //             </div>
-
-    //             <div className="completed-trips">
-    //                 <h3>Completed Trips</h3>
-    //                 <TransitionGroup className="completed-trips-list">
-    //                     {completed.length === 0 ? (
-    //                         <p style={{ textAlign: 'center', margin: '100px' }}>
-    //                             No completed trips yet.
-    //                         </p>
-    //                     ) : (
-    //                         completed.map((trip, index) => (
-    //                             <CSSTransition
-    //                                 key={trip.name}
-    //                                 timeout={300}
-    //                                 classNames="trip"
-    //                                 nodeRef={nodeRef}
-    //                             >
-    //                                 <div className="trip-card completed">
-    //                                     <img src={trip.image} alt={trip.name} />
-    //                                     <div className="trip-info">
-    //                                         <h4>{trip.name}</h4>
-    //                                         <p>5-10 March 2024</p>
-    //                                     </div>
-    //                                     <button
-    //                                         className="remove-btn"
-    //                                         onClick={() => handleRemove(trip.name)}
-    //                                     >
-    //                                         Remove
-    //                                     </button>
-    //                                 </div>
-    //                             </CSSTransition>
-    //                         ))
-    //                     )}
-    //                 </TransitionGroup>
-    //             </div>
-    //         </div>
-    //         <Footer />
-    //         <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-    //     </div>
-    // );
 
     return (
         <div>
@@ -130,10 +56,10 @@ export default function MyTravels() {
                                 No planned trips yet
                             </p>
                         ) : (
-                            planned.map((trip, index) => (
+                            planned.map((trip) => (
                                 <div className="trip-card" 
-                                    key={index}
-                                    onMouseEnter={() => setHoveredIndex(index)}
+                                    key={trip.id}
+                                    onMouseEnter={() => setHoveredIndex(trip.id)}
                                     onMouseLeave={() => setHoveredIndex(null)}
                                 >
                                     <img src={trip.image} alt={trip.name} />
@@ -142,17 +68,17 @@ export default function MyTravels() {
                                         <p>{trip.date}</p>
                                     </div>
 
-                                    {hoveredIndex === index && (
+                                    {hoveredIndex === trip.id && (
                                         <div className='hover-buttons'>
                                             <button 
                                                 className='remove-btn'
-                                                onClick={() => handleRemove(trip.name)}
+                                                onClick={() => handleRemove(trip.id)}
                                             >
                                                 Remove
                                             </button>
                                             <button 
                                                 className='complete-btn'
-                                                onClick={() => handleComplete(trip.name)}
+                                                onClick={() => handleComplete(trip.id)}
                                             >
                                                 Complete
                                             </button>
@@ -172,8 +98,8 @@ export default function MyTravels() {
                                 No completed trips yet.
                             </p>
                         ) : (
-                            completed.map((trip, index) => (
-                                <div className="trip-card completed" key={index}>
+                            completed.map((trip) => (
+                                <div className="trip-card completed" key={trip.id}>
                                     <img src={trip.image} alt={trip.name} />
                                     <div className="trip-info">
                                         <h4>{trip.name}</h4>
@@ -181,7 +107,7 @@ export default function MyTravels() {
                                     </div>
                                     <div className='hover-buttons'>
                                         <button className="remove-btn"
-                                        onClick={() => removeTrip(trip.name)}>Remove</button>
+                                        onClick={() => removeTrip(trip.id)}>Remove</button>
                                     </div>
                                 </div>
                             ))
