@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
+app.use(cors());
+app.use(express.json());
+
 // Admin SDK setup
 const admin = require('firebase-admin');
 const serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
@@ -94,9 +97,6 @@ app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, 
     res.status(500).json({ error: 'Failed to mark trip as completed' });
   }
 });
-
-app.use(cors());
-app.use(express.json());
 
 // React build static files
 const path = require('path');
