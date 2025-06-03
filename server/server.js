@@ -98,8 +98,14 @@ app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, 
 app.use(cors());
 app.use(express.json());
 
-app.use('/', express.static('public'));
-// Start the server
+// React build static files
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../client/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
