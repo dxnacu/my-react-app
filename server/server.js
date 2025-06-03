@@ -1,14 +1,108 @@
+// Express setup
 const express = require('express');
 const cors = require('cors');
-
+const router = express.Router();
+const tripsRoutes = require('./routes/trips');
 const app = express();
+
+// Admin SDK setup
+const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
+const { getAuth } = require('firebase-admin/auth');
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://my-web-project.firebaseio.com"
+});
+const db = admin.firestore();
+
+// Authentication middleware
+async function authenticateToken(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).send('No token provided');
+
+    const token = authHeader.split(' ')[1];
+    try {
+        const decodedToken = await getAuth().verifyIdToken(token);
+        req.user = decodedToken; // Attach user ID to request
+        next();
+    } catch (error) {
+        res.status(403).send('Unauthorized');
+    }
+}
+
+router.get("/api/planned-trips", authenticateToken, async (req, res) => {
+    const uid = req.user.uid;
+
+    try {
+        const tripsRef = db.collection('users').doc(uid).collection('trips');
+        const snapshot = await tripsRef.where('status', '==', 'planned').get();
+
+        const trips = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        res.json(trips);
+    } catch (error) {
+        console.error("Error fetching trips:", error);
+        res.status(500).json({ error: "Failed to fetch planned trips" });
+    }
+});
+
+router.post('/api/planned-trips', authenticateToken, async (req, res) => {
+    const uid = req.user.uid;
+    const tripData = req.body;
+
+    try {
+        const tripRef = await db
+            .collection('users')
+            .doc(uid)
+            .collection('trips')
+            .add({ ...tripData, status: 'planned' });
+
+        await tripRef.update({ id: tripRef.id }); // Update the document with its own ID
+
+        res.status(201).json({ id: tripRef.id, ...tripData, status: 'planned' });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to add trip" });
+    }
+})
+
+app.delete('/api/planned-trips/:tripId', authenticateToken, async (req, res) => {
+    const { tripId } = req.params;
+    const uid = req.user.uid;
+
+    try {
+        const tripRef = db.collection('users').doc(uid).collection('trips').doc(tripId);
+        await tripRef.delete();
+        res.status(200).json({ message: `Trip ${tripId} deleted` });
+    } catch (error) {
+        console.error("Error deleting trip:", error);
+        res.status(500).json({ error: "Failed to delete trip" });
+    }
+});
+
+app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, res) => {
+  const { tripId } = req.params;
+  const uid = req.user.uid;
+
+  try {
+    const tripRef = db.collection('users').doc(uid).collection('trips').doc(tripId);
+    await tripRef.update({ status: 'completed' });
+    res.status(200).json({ message: `Trip ${tripId} marked as completed` });
+  } catch (error) {
+    console.error('Error marking trip as completed:', error);
+    res.status(500).json({ error: 'Failed to mark trip as completed' });
+  }
+});
+
 app.use(cors());
 app.use(express.json());
 
-app.listen(5000, () => {
-    console.log('Server is running on port 5000');
-});
+app.use('/api', tripsRoutes);
 
-app.get("/api/message", (req, res) => {
-    res.json({ message: "Hello from the backend! (server.react)" });
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });

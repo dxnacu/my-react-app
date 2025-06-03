@@ -1,13 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  addTripToFirestore, 
-  getTripsFromFirestore,
-  deleteTripFromFirestore,
-  markTripAsCompletedInFirestore 
-} from '../services/databaseService';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { useUser } from "./userContext";
-import { collection, where, getDocs, query } from 'firebase/firestore';
-import { db } from '../services/firebase';
 
 const PlannedTripsContext = createContext();
 
@@ -17,10 +9,24 @@ export function PlannedTripsProvider({ children }) {
 
   useEffect(() => {
     const fetchTrips = async () => {
-      const tripsFromDb = await getTripsFromFirestore(user.uid);
-      setTrips(tripsFromDb);
-      console.log("Trips from Firestore:", tripsFromDb);
-    }
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch('http://localhost:5000/api/planned-trips', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to load trips');
+        }
+
+        const tripsFromServer = await res.json();
+        setTrips(tripsFromServer);
+      } catch (error) {
+        console.error("Error loading trips:", error);
+      }
+    };
 
     if(user) fetchTrips();
   }, [user]);
@@ -28,16 +34,22 @@ export function PlannedTripsProvider({ children }) {
   const addTrip = async (trip) => {
     if (user) {
       try {
-        const tripsRef = collection(db, `users/${user.uid}/trips`);
-        const q = query(tripsRef, where("name", "==", trip.name));
-        const snapshot = await getDocs(q);
+        const token = await user.getIdToken();
 
-        if (!snapshot.empty) {
-          console.log("Trip with this name already exists");
-          return;
+        const res = await fetch('http://localhost:5000/api/planned-trips', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(trip)
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to add trip');
         }
 
-        const newTrip = await addTripToFirestore(user.uid, trip);
+        const newTrip = await res.json();
         setTrips(prevTrips => [...prevTrips, newTrip]);
       } catch (error) {
         console.error("Error adding trip:", error);
@@ -47,19 +59,49 @@ export function PlannedTripsProvider({ children }) {
 
   const removeTrip = async (tripid) => {
     if (user) {
-      await deleteTripFromFirestore(user.uid, tripid);
-      setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripid));
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`http://localhost:5000/api/planned-trips/${tripid}`, {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to delete trip");
+        }
+
+        setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripid));
+      } catch (error) {
+        console.error("Error deleting trip:", error);
+      }
     }
-  }
+  };
 
   const markTripAsCompleted = async (tripid) => {
     if (user) {
-      await markTripAsCompletedInFirestore(user.uid, tripid);
-      setTrips(prevTrips => 
-        prevTrips.map(trip => 
-          trip.id === tripid ? { ...trip, status: 'completed' } : trip
-        )
-      );
+      try {
+        const token = await user.getIdToken();
+        const res =await fetch(`http://localhost:5000/api/planned-trips/${tripid}/complete`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to mark trip as completed");
+        }
+
+        setTrips(prevTrips => 
+          prevTrips.map(trip => 
+            trip.id === tripid ? { ...trip, status: 'completed' } : trip
+          )
+        );
+      } catch (error) {
+        console.error("Error marking trip as completed:", error);
+      }
     }
   }
 
