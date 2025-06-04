@@ -32,7 +32,13 @@ async function authenticateToken(req, res, next) {
         req.user = decodedToken; // Attach user ID to request
         next();
     } catch (error) {
-        res.status(403).send('Unauthorized');
+        if (error.code === 'auth/id-token-expired') {
+            res.status(401).send('Token has expired');
+        } else if (error.code === 'auth/invalid-id-token') {
+            res.status(401).send('Invalid token');
+        } else {
+            res.status(403).send('Unauthorized');
+        }
     }
 }
 
@@ -105,11 +111,16 @@ app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, 
   }
 });
 
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
-});
+if (!process.env.GOOGLE_CREDENTIALS) {
+  console.error("Missing GOOGLE_CREDENTIALS env variable");
+  process.exit(1);
+}

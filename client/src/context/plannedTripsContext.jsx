@@ -11,7 +11,7 @@ export function PlannedTripsProvider({ children }) {
     const fetchTrips = async () => {
       try {
         const token = await user.getIdToken();
-        const res = await fetch('http://localhost:5000/api/planned-trips', {
+        const res = await fetch('/api/planned-trips', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -36,7 +36,7 @@ export function PlannedTripsProvider({ children }) {
       try {
         const token = await user.getIdToken();
 
-        const res = await fetch('http://localhost:5000/api/planned-trips', {
+        const res = await fetch('/api/planned-trips', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -61,7 +61,7 @@ export function PlannedTripsProvider({ children }) {
     if (user) {
       try {
         const token = await user.getIdToken();
-        const res = await fetch(`http://localhost:5000/api/planned-trips/${tripid}`, {
+        const res = await fetch(`/api/planned-trips/${tripid}`, {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`
@@ -83,7 +83,7 @@ export function PlannedTripsProvider({ children }) {
     if (user) {
       try {
         const token = await user.getIdToken();
-        const res =await fetch(`http://localhost:5000/api/planned-trips/${tripid}/complete`, {
+        const res =await fetch(`/api/planned-trips/${tripid}/complete`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${token}`
