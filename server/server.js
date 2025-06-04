@@ -2,9 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-
-app.use(cors());
-app.use(express.json());
+const path = require('path');
 
 // Admin SDK setup
 const admin = require('firebase-admin');
@@ -13,9 +11,15 @@ const { getAuth } = require('firebase-admin/auth');
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://my-web-project.firebaseio.com"
+    // databaseURL: "https://my-web-project.firebaseio.com"
 });
 const db = admin.firestore();
+
+app.use(cors());
+app.use(express.json());
+
+// React build static files
+app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
 
 // Authentication middleware
 async function authenticateToken(req, res, next) {
@@ -55,6 +59,8 @@ app.post('/api/planned-trips', authenticateToken, async (req, res) => {
     const uid = req.user.uid;
     const tripData = req.body;
 
+    console.log('Request body:', req.body);
+
     try {
         const tripRef = await db
             .collection('users')
@@ -66,6 +72,7 @@ app.post('/api/planned-trips', authenticateToken, async (req, res) => {
 
         res.status(201).json({ id: tripRef.id, ...tripData, status: 'planned' });
     } catch (error) {
+        console.error("Error adding trip:", error);
         res.status(500).json({ error: "Failed to add trip" });
     }
 })
@@ -98,15 +105,11 @@ app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, 
   }
 });
 
-// React build static files
-const path = require('path');
-app.use(express.static(path.join(__dirname, '../client/build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-});
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 });
