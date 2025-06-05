@@ -114,7 +114,7 @@ app.patch('/api/trips/:tripId/complete', authenticateToken, async (req, res) => 
   console.log("PATCH complete trip", req.params.tripId);
 });
 
-app.get('/{*path}', (req, res) => {
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 });
 
