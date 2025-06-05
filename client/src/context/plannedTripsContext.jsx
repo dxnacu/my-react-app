@@ -67,8 +67,8 @@ export function PlannedTripsProvider({ children }) {
 
     if (user) {
       try {
-        const token = await fetchIdToken(); // <-- FIXED
-        const res = await fetch(`/api/trips/${tripid}`, { // <-- FIXED
+        const token = await fetchIdToken();
+        const res = await fetch(`/api/trips/${tripid}`, {
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`
@@ -94,7 +94,7 @@ export function PlannedTripsProvider({ children }) {
     
     if (user) {
       try {
-        const token = await fetchIdToken(); // <-- FIXED
+        const token = await fetchIdToken();
         const res = await fetch(`/api/trips/${tripid}/complete`, {
           method: 'PATCH',
           headers: {

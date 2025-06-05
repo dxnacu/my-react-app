@@ -24,6 +24,8 @@ export default function MyTravels() {
         );
     }
 
+    console.log('Fetched trips:', trips);
+
     const planned = trips.filter(trip => trip.status === 'planned');
     const completed = trips.filter(trip => trip.status === 'completed');
 

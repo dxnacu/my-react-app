@@ -47,7 +47,7 @@ app.get("/api/trips", authenticateToken, async (req, res) => {
 
     try {
         const tripsRef = db.collection('users').doc(uid).collection('trips');
-        const snapshot = await tripsRef.where('status', '==', 'planned').get();
+        const snapshot = await tripsRef.get();
 
         const trips = snapshot.docs.map(doc => ({
             id: doc.id,
@@ -100,6 +100,7 @@ app.delete('/api/trips/:tripId', authenticateToken, async (req, res) => {
 app.patch('/api/trips/:tripId/complete', authenticateToken, async (req, res) => {
   const { tripId } = req.params;
   const uid = req.user.uid;
+  console.log('PATCH /api/trips/:tripId/complete', { tripId, uid });
 
   try {
     const tripRef = db.collection('users').doc(uid).collection('trips').doc(tripId);
