@@ -6,7 +6,7 @@ const path = require('path');
 
 // Admin SDK setup
 const admin = require('firebase-admin');
-const serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+const serviceAccount = require('./serviceAccountKey.json');
 const { getAuth } = require('firebase-admin/auth');
 
 admin.initializeApp({
