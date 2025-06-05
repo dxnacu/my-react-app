@@ -6,11 +6,11 @@ const path = require('path');
 
 // Admin SDK setup
 const admin = require('firebase-admin');
-const serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+const serviceAccount = require('./serviceAccountKey.json');
 const { getAuth } = require('firebase-admin/auth');
 
 admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert(serviceAccount)
     // databaseURL: "https://my-web-project.firebaseio.com"
 });
 const db = admin.firestore();
@@ -42,7 +42,7 @@ async function authenticateToken(req, res, next) {
     }
 }
 
-app.get("/api/planned-trips", authenticateToken, async (req, res) => {
+app.get("/api/trips", authenticateToken, async (req, res) => {
     const uid = req.user.uid;
 
     try {
@@ -61,7 +61,7 @@ app.get("/api/planned-trips", authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/planned-trips', authenticateToken, async (req, res) => {
+app.post('/api/trips', authenticateToken, async (req, res) => {
     const uid = req.user.uid;
     const tripData = req.body;
 
@@ -83,7 +83,7 @@ app.post('/api/planned-trips', authenticateToken, async (req, res) => {
     }
 })
 
-app.delete('/api/planned-trips/:tripId', authenticateToken, async (req, res) => {
+app.delete('/api/trips/:tripId', authenticateToken, async (req, res) => {
     const { tripId } = req.params;
     const uid = req.user.uid;
 
@@ -97,7 +97,7 @@ app.delete('/api/planned-trips/:tripId', authenticateToken, async (req, res) => 
     }
 });
 
-app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, res) => {
+app.patch('/api/trips/:tripId/complete', authenticateToken, async (req, res) => {
   const { tripId } = req.params;
   const uid = req.user.uid;
 
@@ -109,9 +109,11 @@ app.patch('/api/planned-trips/:tripId/complete', authenticateToken, async (req, 
     console.error('Error marking trip as completed:', error);
     res.status(500).json({ error: 'Failed to mark trip as completed' });
   }
+
+  console.log("PATCH complete trip", req.params.tripId);
 });
 
-app.get('*', (req, res) => {
+app.get('/{*path}', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'client', 'build', 'index.html'));
 });
 
@@ -120,7 +122,7 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-if (!process.env.GOOGLE_CREDENTIALS) {
-  console.error("Missing GOOGLE_CREDENTIALS env variable");
-  process.exit(1);
-}
+// if (!process.env.GOOGLE_CREDENTIALS) {
+//   console.error("Missing GOOGLE_CREDENTIALS env variable");
+//   process.exit(1);
+// }

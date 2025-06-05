@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useUser } from "./userContext";
+import { fetchIdToken } from '../services/authService'; // Adjust the import path as necessary
 
 const PlannedTripsContext = createContext();
 
@@ -10,8 +11,9 @@ export function PlannedTripsProvider({ children }) {
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        const token = await user.getIdToken();
-        const res = await fetch('/api/planned-trips', {
+        // const token = await user.getIdToken();
+        const token = await fetchIdToken();
+        const res = await fetch('/api/trips', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -34,9 +36,9 @@ export function PlannedTripsProvider({ children }) {
   const addTrip = async (trip) => {
     if (user) {
       try {
-        const token = await user.getIdToken();
-
-        const res = await fetch('/api/planned-trips', {
+        const token = await fetchIdToken(); // <-- FIXED
+  
+        const res = await fetch('/api/trips', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -44,11 +46,11 @@ export function PlannedTripsProvider({ children }) {
           },
           body: JSON.stringify(trip)
         });
-
+  
         if (!res.ok) {
           throw new Error('Failed to add trip');
         }
-
+  
         const newTrip = await res.json();
         setTrips(prevTrips => [...prevTrips, newTrip]);
       } catch (error) {
@@ -56,22 +58,27 @@ export function PlannedTripsProvider({ children }) {
       }
     }
   }
-
+  
   const removeTrip = async (tripid) => {
+    if (!tripid) {
+      console.error("No tripid provided to removeTrip!");
+      return;
+    }
+
     if (user) {
       try {
-        const token = await user.getIdToken();
-        const res = await fetch(`/api/planned-trips/${tripid}`, {
+        const token = await fetchIdToken(); // <-- FIXED
+        const res = await fetch(`/api/trips/${tripid}`, { // <-- FIXED
           method: 'DELETE',
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
-
+  
         if (!res.ok) {
           throw new Error("Failed to delete trip");
         }
-
+  
         setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripid));
       } catch (error) {
         console.error("Error deleting trip:", error);
@@ -80,11 +87,16 @@ export function PlannedTripsProvider({ children }) {
   };
 
   const markTripAsCompleted = async (tripid) => {
+    if (!tripid) {
+      console.error("No tripid provided to markTripAsCompleted!");
+      return;
+    }
+    
     if (user) {
       try {
-        const token = await user.getIdToken();
-        const res =await fetch(`/api/planned-trips/${tripid}/complete`, {
-          method: 'POST',
+        const token = await fetchIdToken(); // <-- FIXED
+        const res = await fetch(`/api/trips/${tripid}/complete`, {
+          method: 'PATCH',
           headers: {
             Authorization: `Bearer ${token}`
           }

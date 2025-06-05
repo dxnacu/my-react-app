@@ -29,6 +29,11 @@ export default function MyTravels() {
 
     const handleRemove = (id) => {
         console.log("Trying to remove trip with id:", id);
+        if (!id) {
+            console.error("Trip id is undefined in handleRemove");
+            return;
+        }
+
         const trip = trips.find(t => t.id === id);
         if (trip && window.confirm(`Are you sure you want to remove "${trip.name}"?`)) {
             removeTrip(id);
@@ -37,6 +42,11 @@ export default function MyTravels() {
     };
 
     const handleComplete = (id) => {
+        if (!id) {
+            console.error("Trip id is undefined in handleComplete");
+            return;
+        }
+
         const trip = trips.find(t => t.id === id);
         if (trip){
             markTripAsCompleted(id);
