@@ -42,6 +42,10 @@ async function authenticateToken(req, res, next) {
     }
 }
 
+app.get('/api/test', (req, res) => {
+  res.json({ ok: true });
+});
+
 app.get("/api/trips", authenticateToken, async (req, res) => {
     const uid = req.user.uid;
 
